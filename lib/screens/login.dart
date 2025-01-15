@@ -4,6 +4,7 @@ import 'dart:developer';
 
 import 'package:flutter/material.dart';
 import 'package:http/http.dart';
+import 'package:mindmap_assessment/database/prefs.dart';
 import 'package:mindmap_assessment/network_handlers.dart';
 import 'package:mindmap_assessment/screens/dashboard.dart';
 
@@ -28,6 +29,7 @@ class _LoginScreenState extends State<LoginScreen> {
     // TODO: implement initState
     super.initState();
   }
+
   login()async{
     var res = await get(Uri.parse("${baseUrl}users?username=$username&password=$password"));
     log("Response ${res.body}");
@@ -38,7 +40,8 @@ class _LoginScreenState extends State<LoginScreen> {
           ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Wrong Creds Try again!")));
         }else {
           userModelNotifier = ValueNotifier(UserModel.fromJson(data[0]));
-          if(userModelNotifier.value.username == username && userModelNotifier.value.password == password){
+          await Prefs().storeCreds(res.body);
+          if(userModelNotifier!.value.username == username && userModelNotifier!.value.password == password){
             Navigator.push(context, MaterialPageRoute(
                 builder: (builder) => DashboardScreen()));
           }else{

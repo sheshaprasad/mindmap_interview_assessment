@@ -40,31 +40,39 @@ class _MoneyTransferScreenState extends State<MoneyTransferScreen> {
                           label: Text("Amount to send"),
                           hintText: "Enter the amount you want to send",
                           border: OutlineInputBorder(borderSide: BorderSide(color: Colors.blue)),
-                          helperText: "Available balance ${userModelNotifier.value.balance}$currencyCode"
+                          helperText: "Available balance ${userModelNotifier!.value.balance}$currencyCode"
                         ),
                         onChanged: (val){
                           amount = val;
                         },
                       ),
                       Spacer(),
-                      Align(
-                        alignment: Alignment.center,
-                        child: OutlinedButton(
-                            onPressed: (){
-                              if(loading)return;
-                              if(amount.isEmpty){
-                                ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Enter Amount")));
-                              }else {
-                                if(double.parse(amount) < double.parse(userModelNotifier.value.balance??"0")){
-                                  sendAmount();
-                                }else{
-                                  ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("You don't have sufficient balance")));
-                                }
-                              }
-                            },
-                            child: Text("Send", style: TextStyle(color: Colors.white),),
-                          style: ButtonStyle(backgroundColor: WidgetStatePropertyAll(Colors.blue)),
-                        ),
+                      ValueListenableBuilder(
+                        valueListenable: internetAvailable,
+                        builder: (_, iA, __) {
+                          return iA ? Align(
+                            alignment: Alignment.center,
+                            child: OutlinedButton(
+                                onPressed: (){
+                                  if(loading)return;
+                                  if(amount.isEmpty){
+                                    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Enter Amount")));
+                                  }else {
+                                    if(double.parse(amount) < double.parse(userModelNotifier!.value.balance??"0")){
+                                      sendAmount();
+                                    }else{
+                                      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("You don't have sufficient balance")));
+                                    }
+                                  }
+                                },
+                                child: Text("Send", style: TextStyle(color: Colors.white),),
+                              style: ButtonStyle(backgroundColor: WidgetStatePropertyAll(Colors.blue)),
+                            ),
+                          ) : Align(
+                            alignment: Alignment.center,
+                              child: Text("No Internet Connection", style: TextStyle(fontWeight: FontWeight.bold))
+                          );
+                        }
                       )
                     ],
                   ),
@@ -93,21 +101,21 @@ class _MoneyTransferScreenState extends State<MoneyTransferScreen> {
     });
     FocusScope.of(context).unfocus();
 
-    var res = await post(Uri.parse("${baseUrl}users/${userModelNotifier.value.id}/transactions"), body: {
+    var res = await post(Uri.parse("${baseUrl}users/${userModelNotifier!.value.id}/transactions"), body: {
       "amount" : amount,
-      "userId" : userModelNotifier.value.id!
+      "userId" : userModelNotifier!.value.id!
     });
     dev.log("Resss ${res.body}");
 
-    var res1 = await put(Uri.parse("${baseUrl}users/${userModelNotifier.value.id}"), body: {
-      "balance" : (double.parse(userModelNotifier.value.balance??"0") - double.parse(amount)).toString()
+    var res1 = await put(Uri.parse("${baseUrl}users/${userModelNotifier!.value.id}"), body: {
+      "balance" : (double.parse(userModelNotifier!.value.balance??"0") - double.parse(amount)).toString()
     });
     loading = false;
     setState(() {
 
     });
     dev.log("Resss ${res1.body}");
-    userModelNotifier.value = UserModel.fromJson(jsonDecode(res1.body));
+    userModelNotifier!.value = UserModel.fromJson(jsonDecode(res1.body));
     showModalBottomSheet(
         context: context,
         shape: RoundedRectangleBorder(

@@ -1,14 +1,51 @@
+import 'dart:convert';
+import 'dart:developer';
+
 import 'package:flutter/material.dart';
+import 'package:internet_connection_checker_plus/internet_connection_checker_plus.dart';
+import 'package:mindmap_assessment/screens/dashboard.dart';
 import 'package:mindmap_assessment/screens/login.dart';
 
+import 'database/prefs.dart';
 import 'models/user_model.dart';
 
-void main() {
+
+ValueNotifier<bool> internetAvailable = ValueNotifier(false);
+
+void main() async{
+  WidgetsFlutterBinding.ensureInitialized();
+
+  internetAvailable.value = await InternetConnection().hasInternetAccess;
+
+  await checkLogin();
+
+  final listener = InternetConnection().onStatusChange.listen((InternetStatus status) {
+    switch (status) {
+      case InternetStatus.connected:
+      // The internet is now connected
+      internetAvailable.value = true;
+        break;
+      case InternetStatus.disconnected:
+      // The internet is now disconnected
+        internetAvailable.value = false;
+        break;
+    }
+  });
+
   runApp(const MyApp());
+
 }
 
 
-late ValueNotifier<UserModel> userModelNotifier;
+checkLogin()async{
+  var res = await Prefs().getCreds();
+  if(res != null){
+    userModelNotifier = ValueNotifier(UserModel.fromJson(jsonDecode(res)[0]));
+  }
+}
+
+
+ValueNotifier<UserModel>? userModelNotifier;
 
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
@@ -16,6 +53,7 @@ class MyApp extends StatelessWidget {
   // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
+
     return MaterialApp(
       title: 'MindMap Assessment',
       theme: ThemeData(
@@ -37,7 +75,7 @@ class MyApp extends StatelessWidget {
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
         useMaterial3: true,
       ),
-      home: LoginScreen(),
+      home: userModelNotifier!=null ? DashboardScreen() : LoginScreen()
     );
   }
 }

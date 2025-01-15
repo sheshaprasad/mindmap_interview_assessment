@@ -9,15 +9,15 @@ class Transaction {
   Transaction.fromJson(Map<String, dynamic> json) {
     createdAt = json['createdAt'];
     amount = json['amount'];
-    id = json['id'];
-    userId = json['userId'];
+    id = json['id'].toString();
+    userId = json['userId'].toString();
   }
 
   Map<String, dynamic> toJson() {
     final Map<String, dynamic> data = new Map<String, dynamic>();
     data['createdAt'] = this.createdAt;
     data['amount'] = this.amount;
-    data['id'] = this.id;
+    data['id'] = int.parse(this.id??"0");
     data['userId'] = this.userId;
     return data;
   }

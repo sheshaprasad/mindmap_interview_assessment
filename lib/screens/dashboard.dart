@@ -5,6 +5,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:http/http.dart';
+import 'package:mindmap_assessment/database/database.dart';
 import 'package:mindmap_assessment/models/money_transfer.dart';
 import 'package:mindmap_assessment/screens/money_transfer.dart';
 
@@ -29,26 +30,35 @@ class _DashboardScreenState extends State<DashboardScreen>{
   }
 
   getTransactions()async{
-    var res = await get(Uri.parse("${baseUrl}users/${userModelNotifier.value.id}/transactions"));
-    log("res ${res.body}");
-    if(res.body.isNotEmpty){
-      try {
-        transactions = List<Transaction>.from(jsonDecode(res.body).map<Transaction>((i) => Transaction.fromJson(i))).reversed.toList();
-
-        setState(() {
-
-        });
-      }catch(e){
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Wrong Creds Try again!")));
+    TransactionDatabase transactionDatabase = TransactionDatabase.instance;
+    try{
+      var res = await get(Uri.parse(
+          "${baseUrl}users/${userModelNotifier!.value.id}/transactions"));
+      log("res ${res.body}");
+      if (res.statusCode == 200) {
+        try {
+          await transactionDatabase.create(List<Transaction>.from(
+              jsonDecode(res.body)
+                  .map<Transaction>((i) => Transaction.fromJson(i))));
+        } catch (e) {
+          log(e.toString());
+          //ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("No Transactions found")));
+        }
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text("Something went wrong, Try again!")));
       }
-    }else{
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Something went wrong, Try again!")));
-    }
+    }catch(e){}
+    transactions = (await transactionDatabase.getTransactions()).reversed.toList();
+
+    loading = false;
+    selMode.value = selMode.value++;
   }
 
 
   List<Transaction> transactions = [];
   List<Payee> payees = [];
+  bool loading = true;
 
   @override
   Widget build(BuildContext context) {
@@ -56,7 +66,7 @@ class _DashboardScreenState extends State<DashboardScreen>{
     return SafeArea(
         child: Scaffold(
           body: ValueListenableBuilder(
-            valueListenable: userModelNotifier,
+            valueListenable: userModelNotifier!,
             builder: (_, userModel, __) {
               return Container(
                 margin: EdgeInsets.symmetric(horizontal: 20, vertical: 10),
@@ -75,7 +85,11 @@ class _DashboardScreenState extends State<DashboardScreen>{
                             spacing: 12,
                             children: [
                               Text("Transactions"),
-                              (transactions.isEmpty) ? emptyTransactionsView()
+                              loading ? Expanded(
+                                child: Container(
+                                    alignment: Alignment.center,
+                                    child: CircularProgressIndicator()),
+                              ) : (transactions.isEmpty) ? emptyTransactionsView()
                                   : Flexible(
                                 child: ListView.builder(
                                   itemCount: transactions.length,
@@ -84,7 +98,12 @@ class _DashboardScreenState extends State<DashboardScreen>{
                                     }
                                 )
                               ),
-                              /*if(tabController.index == 1)*/emptyPayeeView()
+                              ValueListenableBuilder(
+                                  valueListenable: internetAvailable,
+                                  builder: (_, iA, __){
+                                    return iA ? sendMoneyButton() : SizedBox.shrink();
+                                  }
+                              )
                             ],
                           );
                         }
@@ -181,7 +200,7 @@ class _DashboardScreenState extends State<DashboardScreen>{
     return Expanded(child: Text("No Transactions available"));
   }
 
-  emptyPayeeView() {
+  sendMoneyButton() {
     return Align(
       alignment: Alignment.center,
       child: OutlinedButton(
