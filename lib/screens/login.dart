@@ -42,7 +42,7 @@ class _LoginScreenState extends State<LoginScreen> {
           userModelNotifier = ValueNotifier(UserModel.fromJson(data[0]));
           await Prefs().storeCreds(res.body);
           if(userModelNotifier!.value.username == username && userModelNotifier!.value.password == password){
-            Navigator.push(context, MaterialPageRoute(
+            Navigator.pushReplacement(context, MaterialPageRoute(
                 builder: (builder) => DashboardScreen()));
           }else{
             ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Wrong Creds Try again!")));

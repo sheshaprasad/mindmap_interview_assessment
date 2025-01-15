@@ -157,7 +157,7 @@ class _DashboardScreenState extends State<DashboardScreen>{
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text("Transaction Amount"),
-                Text("${transaction.amount}$currencyCode", style: TextStyle(fontWeight: FontWeight.bold),),
+                Text("${formatCurrency(transaction.amount)}", style: TextStyle(fontWeight: FontWeight.bold),),
               ],
             ),
             Row(
@@ -210,7 +210,7 @@ class _DashboardScreenState extends State<DashboardScreen>{
                 return Row(
                   spacing: 10,
                   children: [
-                    Text("Account balance : ${sb ? balance : "****"} $currencyCode", style: TextStyle(fontWeight: FontWeight.bold),),
+                    Text("Account balance : ${sb ? formatCurrency(balance) : "****"}", style: TextStyle(fontWeight: FontWeight.bold),),
                     IconButton(
                       padding: EdgeInsets.zero,
                       tooltip: "Show/Hide Balance",

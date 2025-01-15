@@ -34,13 +34,14 @@ class _MoneyTransferScreenState extends State<MoneyTransferScreen> {
                     children: [
                       Text("Send Money", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20),),
                       TextField(
-                        keyboardType: TextInputType.number,
+                        keyboardType: TextInputType.numberWithOptions(decimal: true),
                         inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                        smartDashesType: SmartDashesType.enabled,
                         decoration: InputDecoration(
                           label: Text("Amount to send"),
                           hintText: "Enter the amount you want to send",
                           border: OutlineInputBorder(borderSide: BorderSide(color: Colors.blue)),
-                          helperText: "Available balance ${userModelNotifier!.value.balance}$currencyCode"
+                          helperText: "Available balance ${formatCurrency(userModelNotifier!.value.balance)}"
                         ),
                         onChanged: (val){
                           amount = val;
