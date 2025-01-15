@@ -18,4 +18,7 @@ class Prefs{
     return await prefs.getString('user_data');
   }
 
+  remove()async{
+    (await SharedPreferences.getInstance()).clear();
+  }
 }

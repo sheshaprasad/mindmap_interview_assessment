@@ -6,7 +6,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:http/http.dart';
 import 'package:mindmap_assessment/database/database.dart';
+import 'package:mindmap_assessment/database/prefs.dart';
 import 'package:mindmap_assessment/models/money_transfer.dart';
+import 'package:mindmap_assessment/screens/login.dart';
 import 'package:mindmap_assessment/screens/money_transfer.dart';
 
 import '../consts/const.dart';
@@ -74,8 +76,25 @@ class _DashboardScreenState extends State<DashboardScreen>{
                   crossAxisAlignment: CrossAxisAlignment.start,
                   spacing: 10,
                   children: [
-                    Text("Hello! ${userModel.name}", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20),),
-                    accountSection(userModel.id,  formatDate(userModel.createdAt),  userModel.balance),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text("Hello! ${userModel.name}", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20),),
+                        IconButton(
+                            tooltip: "Logout",
+                            onPressed: ()async{
+                          await Prefs().remove();
+                          Navigator.pushAndRemoveUntil<dynamic>(
+                            context,
+                            MaterialPageRoute<dynamic>(
+                              builder: (BuildContext context) => LoginScreen(),
+                            ),
+                                (route) => false,//if you want to disable back feature set to false
+                          );
+                        }, icon: Icon(Icons.logout, color: Colors.red,))
+                      ],
+                    ),
+                    accountSection(userModel.id,  formatDateTime(userModel.createdAt),  userModel.balance),
                     Flexible(
                       child: ValueListenableBuilder(
                         valueListenable: selMode,
@@ -127,15 +146,27 @@ class _DashboardScreenState extends State<DashboardScreen>{
           crossAxisAlignment: CrossAxisAlignment.start,
           spacing: 8,
           children: [
-            Text("Transaction ID : ${transaction.id}"),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text("Transaction Amount : ${transaction.amount}$currencyCode"),
-                Icon(Icons.remove, color: Colors.red,),
+                Text("Transaction ID"),
+                Text("${transaction.id}", style: TextStyle(fontWeight: FontWeight.bold),),
               ],
             ),
-            Text("Transaction Date : ${formatDateTime(transaction.createdAt)}"),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text("Transaction Amount"),
+                Text("${transaction.amount}$currencyCode", style: TextStyle(fontWeight: FontWeight.bold),),
+              ],
+            ),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text("Transaction Date"),
+                Text("${formatDateTime(transaction.createdAt)}", style: TextStyle(fontWeight: FontWeight.bold),),
+              ],
+            ),
           ],
         ),
       ),
@@ -180,11 +211,13 @@ class _DashboardScreenState extends State<DashboardScreen>{
                   spacing: 10,
                   children: [
                     Text("Account balance : ${sb ? balance : "****"} $currencyCode", style: TextStyle(fontWeight: FontWeight.bold),),
-                    InkWell(
-                      onTap: (){
+                    IconButton(
+                      padding: EdgeInsets.zero,
+                      tooltip: "Show/Hide Balance",
+                      onPressed: (){
                         showBalance.value = !showBalance.value;
                       },
-                        child: Icon(sb ? Icons.remove_red_eye_outlined : Icons.remove_red_eye, color: Colors.blue,)
+                        icon: Icon(sb ? Icons.remove_red_eye_outlined : Icons.remove_red_eye, color: Colors.blue,)
                     )
                   ],
                 );
