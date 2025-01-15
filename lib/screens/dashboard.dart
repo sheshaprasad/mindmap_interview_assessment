@@ -33,7 +33,8 @@ class _DashboardScreenState extends State<DashboardScreen>{
     log("res ${res.body}");
     if(res.body.isNotEmpty){
       try {
-        transactions = List<Transaction>.from(jsonDecode(res.body).map<Transaction>((i) => Transaction.fromJson(i)));
+        transactions = List<Transaction>.from(jsonDecode(res.body).map<Transaction>((i) => Transaction.fromJson(i))).reversed.toList();
+
         setState(() {
 
         });
@@ -51,6 +52,7 @@ class _DashboardScreenState extends State<DashboardScreen>{
 
   @override
   Widget build(BuildContext context) {
+    getTransactions();
     return SafeArea(
         child: Scaffold(
           body: ValueListenableBuilder(
@@ -63,7 +65,7 @@ class _DashboardScreenState extends State<DashboardScreen>{
                   spacing: 10,
                   children: [
                     Text("Hello! ${userModel.name}", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20),),
-                    accountSection(userModel.id,  userModel.createdAt,  userModel.balance),
+                    accountSection(userModel.id,  formatDate(userModel.createdAt),  userModel.balance),
                     Flexible(
                       child: ValueListenableBuilder(
                         valueListenable: selMode,
@@ -114,6 +116,7 @@ class _DashboardScreenState extends State<DashboardScreen>{
                 Icon(Icons.remove, color: Colors.red,),
               ],
             ),
+            Text("Transaction Date : ${formatDateTime(transaction.createdAt)}"),
           ],
         ),
       ),

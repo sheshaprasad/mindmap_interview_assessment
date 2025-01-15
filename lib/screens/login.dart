@@ -33,9 +33,18 @@ class _LoginScreenState extends State<LoginScreen> {
     log("Response ${res.body}");
     if(res.body.isNotEmpty){
       try {
-        userModelNotifier = ValueNotifier(UserModel.fromJson(jsonDecode(res.body)[0]));
-        Navigator.push(context, MaterialPageRoute(
-            builder: (builder) => DashboardScreen()));
+        var data = jsonDecode(res.body);
+        if(data.length>1){
+          ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Wrong Creds Try again!")));
+        }else {
+          userModelNotifier = ValueNotifier(UserModel.fromJson(data[0]));
+          if(userModelNotifier.value.username == username && userModelNotifier.value.password == password){
+            Navigator.push(context, MaterialPageRoute(
+                builder: (builder) => DashboardScreen()));
+          }else{
+            ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Wrong Creds Try again!")));
+          }
+        }
       }catch(e){
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Wrong Creds Try again!")));
       }
